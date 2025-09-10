@@ -1,0 +1,12 @@
+{
+  "metadata": {
+    "course": "Any-Course",
+    "lastUpdated": "2025-09-10"
+  },
+  "students": [
+    { "urn": "312422243001", "roll": "22AD1139", "name": "AADHITYAN SENTHILKUMAR", "score": 83 },
+    { "urn": "U22CS0002", "roll": "22CS002", "name": "Meera Singh", "score": 87 },
+    { "urn": "U22CS0003", "roll": "22CS003", "name": "Rohan Verma", "score": 74 },
+    { "urn": "U22CS0004", "roll": "22CS004", "name": "Ananya Sharma", "score": 89 }
+  ]
+}

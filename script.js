@@ -1,83 +1,77 @@
-/* Minimal static client for scores.json */
+/* Minimal static client for URN/Roll search + leaderboard */
 let DATA = null;
-const boardBody = () => document.querySelector("#board tbody");
 
-function calcTotal(scores) {
-  return Object.values(scores || {}).reduce((a,b)=>a + (+b||0), 0);
+const $ = (sel) => document.querySelector(sel);
+const tbody = () => $("#board tbody");
+
+function norm(x) {
+  return String(x ?? "").trim().toLowerCase();
 }
 
-function renderLeaderboard(filterGroup = "") {
+function renderLeaderboard() {
   if (!DATA) return;
   const rows = DATA.students
-    .filter(s => !filterGroup || (s.group || '') === filterGroup)
     .map(s => ({
-      name: s.name || '',
-      enrollment: s.enrollment || '',
-      group: s.group || '',
-      total: calcTotal(s.scores || {})
+      name: s.name || "",
+      urn: s.urn || "",
+      roll: s.roll || "",
+      score: Number(s.score || 0)
     }))
-    .sort((a,b) => b.total - a.total);
+    .sort((a,b) => b.score - a.score);
 
-  const tbody = boardBody();
-  tbody.innerHTML = "";
-  rows.forEach((r, idx) => {
+  const body = tbody();
+  body.innerHTML = "";
+  rows.forEach((r, i) => {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${idx+1}</td>
-                    <td>${r.name}</td>
-                    <td>${r.enrollment}</td>
-                    <td>${r.group || '-'}</td>
-                    <td class="right">${r.total}</td>`;
-    tbody.appendChild(tr);
+    tr.innerHTML = `
+      <td>${i + 1}</td>
+      <td>${r.name}</td>
+      <td>${r.urn}</td>
+      <td>${r.roll}</td>
+      <td class="right">${r.score}</td>
+    `;
+    body.appendChild(tr);
   });
 }
 
-function renderGroups() {
-  const sel = document.getElementById("filterGroup");
-  const groups = Array.from(new Set(DATA.students.map(s => s.group).filter(Boolean))).sort();
-  sel.innerHTML = `<option value="">All Groups</option>` + groups.map(g => `<option>${g}</option>`).join("");
-  sel.onchange = e => renderLeaderboard(e.target.value);
-}
-
 function showResult(student) {
-  const box = document.getElementById("result");
+  const box = $("#result");
   if (!student) {
-    box.innerHTML = `<p class="muted">No match found. Check your enrollment number.</p>`;
+    box.innerHTML = `<p class="muted">No match found. Check your ${$("#searchType").value.toUpperCase()}.</p>`;
     return;
   }
-  const total = calcTotal(student.scores);
-  const lines = Object.entries(student.scores || {})
-    .map(([k,v]) => `<div class="scoreline"><span>${k}</span><span>${v}</span></div>`)
-    .join("");
-  box.innerHTML = `<h3>${student.name} • ${student.enrollment}${student.group ? ' • Group ' + student.group : ''}</h3>
-                   ${lines}
-                   <div class="scoreline total"><span>Total</span><span>${total}</span></div>`;
+  box.innerHTML = `
+    <div class="line"><span><strong>Name</strong></span><span>${student.name}</span></div>
+    <div class="line"><span><strong>URN</strong></span><span>${student.urn}</span></div>
+    <div class="line"><span><strong>Roll No.</strong></span><span>${student.roll}</span></div>
+    <div class="line total"><span><strong>Score</strong></span><span>${student.score}</span></div>
+  `;
 }
 
 function handleSearch() {
-  const q = (document.getElementById("enroll").value || "").trim().toLowerCase();
-  const student = DATA.students.find(s => (s.enrollment||"").toLowerCase() === q);
+  const type = $("#searchType").value; // 'urn' | 'roll'
+  const q = norm($("#searchInput").value);
+  if (!q) return showResult(null);
+
+  const student = DATA.students.find(s => norm(s[type]) === q);
   showResult(student || null);
 }
 
 function downloadCSV() {
   const rows = DATA.students.map(s => ({
-    name: s.name || '',
-    enrollment: s.enrollment || '',
-    group: s.group || '',
-    ...s.scores,
-    total: calcTotal(s.scores || {})
+    name: s.name || "",
+    urn: s.urn || "",
+    roll: s.roll || "",
+    score: Number(s.score || 0)
   }));
-  const headers = Array.from(
-    new Set(rows.flatMap(r => Object.keys(r)))
-  );
+  const headers = ["name", "urn", "roll", "score"];
   const csv = [headers.join(",")].concat(
     rows.map(r => headers.map(h => (r[h] ?? "")).join(","))
   ).join("\n");
   const blob = new Blob([csv], {type: "text/csv"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url;
-  a.download = "leaderboard.csv";
+  a.href = url; a.download = "leaderboard.csv";
   document.body.appendChild(a);
   a.click();
   URL.revokeObjectURL(url);
@@ -86,21 +80,17 @@ function downloadCSV() {
 
 async function init() {
   try {
-    const res = await fetch("scores.json", {cache: "no-store"});
+    const res = await fetch("scores.json", { cache: "no-store" });
     DATA = await res.json();
   } catch (e) {
     console.error(e);
-    DATA = {metadata:{},students:[]};
+    DATA = { metadata: {}, students: [] };
   }
   renderLeaderboard();
-  renderGroups();
-  document.getElementById("lastUpdated").textContent =
-    DATA.metadata?.lastUpdated ? "Last updated: " + DATA.metadata.lastUpdated : "";
-  document.getElementById("searchBtn").onclick = handleSearch;
-  document.getElementById("enroll").addEventListener("keydown", e => {
-    if (e.key === "Enter") handleSearch();
-  });
-  document.getElementById("downloadCsvBtn").onclick = downloadCSV;
+  $("#lastUpdated").textContent = DATA.metadata?.lastUpdated ? `Last updated: ${DATA.metadata.lastUpdated}` : "";
+  $("#searchBtn").onclick = handleSearch;
+  $("#searchInput").addEventListener("keydown", (e) => { if (e.key === "Enter") handleSearch(); });
+  $("#downloadCsvBtn").onclick = downloadCSV;
 }
 
 init();
