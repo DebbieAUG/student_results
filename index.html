@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Course Leaderboard & Scores</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="container">
+    <h1>Course Leaderboard & Scores</h1>
+    <p class="muted">Search your score by Enrollment Number or browse the leaderboard.</p>
+  </header>
+
+  <main class="container">
+    <section class="search-card">
+      <label for="enroll">Enrollment Number</label>
+      <div class="row">
+        <input id="enroll" type="text" placeholder="e.g., 22CS001" />
+        <button id="searchBtn" aria-label="Search score">Search</button>
+      </div>
+      <p class="tiny muted">Tip: Exact match. Case-insensitive.</p>
+      <div id="result" class="result"></div>
+    </section>
+
+    <section class="leaderboard-card">
+      <div class="row-between">
+        <h2>Leaderboard</h2>
+        <div class="controls">
+          <label for="filterGroup" class="visually-hidden">Filter by Group</label>
+          <select id="filterGroup">
+            <option value="">All Groups</option>
+          </select>
+          <button id="downloadCsvBtn">Download CSV</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table id="board">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th data-key="name">Name</th>
+              <th data-key="enrollment">Enrollment</th>
+              <th data-key="group">Group</th>
+              <th data-key="total" class="right">Total</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p id="lastUpdated" class="tiny muted"></p>
+    </section>
+
+    <details class="container small">
+      <summary>How to update scores (instructor)</summary>
+      <ol>
+        <li>Open <code>scores.json</code> in GitHub and edit the list. Commit changes.</li>
+        <li>Structure: <code>enrollment</code>, <code>name</code>, optional <code>group</code>, and <code>scores</code> (key-value).</li>
+        <li>Total is calculated automatically.</li>
+      </ol>
+      <pre class="code">
+{
+  "metadata": {
+    "course": "AI-401",
+    "lastUpdated": "2025-09-10",
+    "assessments": ["Quiz1","Quiz2","Project"]
+  },
+  "students": [
+    {"enrollment":"22CS001","name":"Aarav Gupta","group":"A",
+     "scores":{"Quiz1":18,"Quiz2":20,"Project":45}},
+    {"enrollment":"22CS002","name":"Meera Singh","group":"A",
+     "scores":{"Quiz1":20,"Quiz2":19,"Project":48}}
+  ]
+}
+      </pre>
+    </details>
+  </main>
+
+  <footer class="container tiny muted">
+    <span>Static app • Host on GitHub Pages • Data from <code>scores.json</code></span>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
