@@ -57,27 +57,6 @@ function handleSearch() {
   showResult(student || null);
 }
 
-function downloadCSV() {
-  const rows = DATA.students.map(s => ({
-    name: s.name || "",
-    urn: s.urn || "",
-    roll: s.roll || "",
-    score: Number(s.score || 0)
-  }));
-  const headers = ["name", "urn", "roll", "score"];
-  const csv = [headers.join(",")].concat(
-    rows.map(r => headers.map(h => (r[h] ?? "")).join(","))
-  ).join("\n");
-  const blob = new Blob([csv], {type: "text/csv"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = "leaderboard.csv";
-  document.body.appendChild(a);
-  a.click();
-  URL.revokeObjectURL(url);
-  a.remove();
-}
-
 async function init() {
   try {
     const res = await fetch("scores.json", { cache: "no-store" });
